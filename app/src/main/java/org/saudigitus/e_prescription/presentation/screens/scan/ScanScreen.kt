@@ -143,6 +143,7 @@ private fun ScanUI(
                     onEvent(ScanUiEvent.NavTo("${AppRoutes.PRESCRIPTION_SCREEN}/$uid"))
                 },
                 shape = RoundedCornerShape(16.dp),
+                enabled = state.scanResult.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth()
                     .height(108.dp)
                     .padding(24.dp)

@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,7 +22,6 @@ import org.saudigitus.e_prescription.presentation.theme.EPrescriptionTheme
 class EPrescriptionActivity : ComponentActivity() {
 
     private val scanViewModel by viewModels<ScanViewModel>()
-    private val prescriptionViewModel by viewModels<PrescriptionViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +42,7 @@ class EPrescriptionActivity : ComponentActivity() {
                         arguments = listOf(navArgument("uid") { type = NavType.StringType })
                     ) { entry ->
                         val uid = entry.arguments?.getString("uid") ?: ""
+                        val prescriptionViewModel = hiltViewModel<PrescriptionViewModel>()
 
                         PrescriptionScreen(prescriptionViewModel, uid, navController::navigateUp)
                     }

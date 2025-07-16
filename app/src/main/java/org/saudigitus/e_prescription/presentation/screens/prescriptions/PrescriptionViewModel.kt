@@ -40,32 +40,28 @@ class PrescriptionViewModel
     private val _cacheGivenMedicines = MutableStateFlow<List<InputFieldModel>>(emptyList())
     val cacheGivenMedicines: StateFlow<List<InputFieldModel>> = _cacheGivenMedicines
 
-    private fun getTeiData(uid: String) {
+    fun loadData(tei: String) {
         viewModelScope.launch {
-            val patient = repository.getPrescriptionPatient(uid, UIDMapping.PROGRAM_PU)
+            val patientDeferred = async {
+                repository.getPatient(tei, UIDMapping.PROGRAM_PU)
+            }
 
-            viewModelState.update {
-                it.copy(
-                    isLoading = false,
-                    prescTei = patient
+            val prescriptionsDeferred = async {
+                repository.getPrescriptions(
+                    tei = tei,
+                    program = UIDMapping.PROGRAM,
+                    stage = UIDMapping.PROGRAM_STAGE
                 )
             }
-        }
-    }
 
-    fun loadPrescriptions(tei: String) {
-        getTeiData(tei)
-        viewModelScope.launch {
-            val prescriptions = repository.getPrescriptions(
-                tei = tei,
-                program = UIDMapping.PROGRAM,
-                stage = UIDMapping.PROGRAM_STAGE
-            )
+            val patientResult = patientDeferred.await()
+            val prescriptionsResult = prescriptionsDeferred.await()
 
             viewModelState.update {
                 it.copy(
                     isLoading = false,
-                    prescriptions = prescriptions
+                    prescTei = patientResult,
+                    prescriptions = prescriptionsResult,
                 )
             }
         }

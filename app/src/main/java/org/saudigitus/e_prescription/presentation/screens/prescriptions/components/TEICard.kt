@@ -1,42 +1,24 @@
 package org.saudigitus.e_prescription.presentation.screens.prescriptions.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.hisp.dhis.android.core.trackedentity.TrackedEntityInstance
 import org.saudigitus.e_prescription.R
 import org.saudigitus.e_prescription.data.model.Patient
-import org.saudigitus.e_prescription.data.model.Prescription
-import org.saudigitus.e_prescription.presentation.screens.prescriptions.model.InputFieldModel
 
 @Composable
 fun TeiCard(
@@ -44,13 +26,12 @@ fun TeiCard(
     patient: Patient?,
 ) {
     Card(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .background(MaterialTheme.colorScheme.surface)
-        ,
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .then(modifier),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -70,7 +51,7 @@ fun TeiCard(
                     )
                 )
                 Text(
-                    text = "${patient?.name} ${patient?.surname}", // Use actual tei id if available
+                    text = "${patient?.name} ${patient?.surname}",
                     style = MaterialTheme.typography.titleSmall
                 )
             }
@@ -86,7 +67,7 @@ fun TeiCard(
                     )
                 )
                 Text(
-                    text = "${patient?.processNumber}", // Use actual tei id if available
+                    text = patient?.processNumber ?: "---",
                     style = MaterialTheme.typography.titleSmall
                 )
             }
@@ -102,7 +83,7 @@ fun TeiCard(
                     )
                 )
                 Text(
-                    text = "${patient?.birthdate}", // Use actual tei id if available
+                    text = patient?.birthdate ?: "---",
                     style = MaterialTheme.typography.titleSmall
                 )
             }
@@ -118,7 +99,7 @@ fun TeiCard(
                     )
                 )
                 Text(
-                    text = "${patient?.gender}", // Replace with actual data
+                    text = patient?.gender ?: "---",
                     style = MaterialTheme.typography.titleSmall
                 )
             }
@@ -134,7 +115,7 @@ fun TeiCard(
                     )
                 )
                 Text(
-                    text = "${patient?.residence}", // Replace with actual data
+                    text = patient?.residence ?: "---",
                     style = MaterialTheme.typography.titleSmall
                 )
             }

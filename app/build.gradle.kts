@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.androidx.animation.graphics)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.hilt.work)
+    implementation(libs.hilt.navigation)
 
     ksp(libs.androidx.hilt.compiler)
     ksp(libs.hilt.compiler)

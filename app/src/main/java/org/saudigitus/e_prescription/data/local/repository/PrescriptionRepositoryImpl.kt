@@ -35,12 +35,6 @@ class PrescriptionRepositoryImpl(
         program: String,
         stage: String,
     ) = withContext(Dispatchers.IO) {
-
-        d2.trackedEntityModule().trackedEntityInstanceDownloader()
-            .byUid().`in`(tei)
-            .byProgramUid(program)
-            .blockingDownload()
-
         d2.eventsWithTrackedDataValues(tei, program, stage)
             .map { event ->
                 val name = event.trackedEntityDataValues()?.first { it.dataElement() == UIDMapping.DATA_ELEMENT_NAME }?.value()
@@ -61,38 +55,55 @@ class PrescriptionRepositoryImpl(
             }
     }
 
-    override suspend fun getPrescriptionPatient(
+    override suspend fun getPatient(
         uid: String,
         program: String
-    ) : Patient = withContext(Dispatchers.IO) {
-        val relationships = d2.relationshipModule().relationships()
-            .byRelationshipType().eq(UIDMapping.RELATIONSHIP_TYPE_UID)
-            .withItems()
-            .blockingGet()
+    ) : Patient? = withContext(Dispatchers.IO) {
+        return@withContext try {
+            d2.trackedEntityModule().trackedEntityInstanceDownloader()
+                .byUid().`in`(uid)
+                .byProgramUid(program)
+                .blockingDownload()
 
-        val trackedEntityInstancesUIds = relationships.filter {
-            it.to()?.trackedEntityInstance()?.trackedEntityInstance() == uid
-        }.mapNotNull {
-            it.from()?.trackedEntityInstance()?.trackedEntityInstance()
+            val relationships = d2.relationshipModule().relationships()
+                .byRelationshipType().eq(UIDMapping.RELATIONSHIP_TYPE_UID)
+                .withItems()
+                .blockingGet()
+
+            val trackedEntityInstancesUIds = relationships.filter {
+                it.to()?.trackedEntityInstance()?.trackedEntityInstance() == uid
+            }.mapNotNull {
+                it.from()?.trackedEntityInstance()?.trackedEntityInstance()
+            }
+
+            val result = d2.trackedEntityModule()
+                .trackedEntityInstances()
+                .withTrackedEntityAttributeValues()
+                .byUid().eq(trackedEntityInstancesUIds.first())
+                .one()
+                .blockingGet()
+
+            val teiUid = trackedEntityInstancesUIds.first()
+
+            Patient(
+                uid = teiUid,
+                name = attributesHelper.getAttributeValueByCode(tei = result, "Jrd6W0L8LQY")
+                    .toString(),
+                surname = attributesHelper.getAttributeValueByCode(tei = result, "KmR2FYgDUmr")
+                    .toString(),
+                residence = attributesHelper.getAttributeValueByCode(tei = result, "HKjREW796JR")
+                    .toString(),
+                gender = attributesHelper.getAttributeValueByCode(tei = result, "CklPZdOd6H1")
+                    .toString(),
+                processNumber = attributesHelper.getAttributeValueByCode(
+                    tei = result,
+                    "um3rU8yasxl"
+                ).toString(),
+                birthdate = attributesHelper.getAttributeValueByCode(tei = result, "S5YtVz5P3QE")
+                    .toString(),
+            )
+        } catch (_: Exception) {
+            null
         }
-        val result = d2.trackedEntityModule()
-            .trackedEntityInstances()
-            .withTrackedEntityAttributeValues()
-            .byUid().eq(trackedEntityInstancesUIds.first())
-            .one()
-            .blockingGet()
-
-        val teiUid = trackedEntityInstancesUIds.first()
-
-        val patient = Patient(
-            uid = teiUid,
-            name = attributesHelper.getAttributeValueByCode(tei = result,"Jrd6W0L8LQY").toString(),          // Replace with actual attribute code for name
-            surname = attributesHelper.getAttributeValueByCode(tei = result,"KmR2FYgDUmr").toString(),       // Replace with actual code for surname
-            residence = attributesHelper.getAttributeValueByCode(tei = result,"HKjREW796JR").toString(),     // Code for residence
-            gender = attributesHelper.getAttributeValueByCode(tei = result,"CklPZdOd6H1").toString(),        // Code for gender
-            processNumber = attributesHelper.getAttributeValueByCode(tei = result,"um3rU8yasxl") .toString(),// Code for process number
-            birthdate = attributesHelper.getAttributeValueByCode(tei = result,"S5YtVz5P3QE") .toString(),    // Code for birthdate
-        )
-        return@withContext patient
     }
 }

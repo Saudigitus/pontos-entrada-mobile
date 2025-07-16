@@ -103,4 +103,5 @@
     <string name="nav_back">Navigate Back</string>
     <string name="prescriptions_saved">Prescrições guardadas com sucesso</string>
     <string name="sync_metadata">Sincronizar metadados</string>
+    <string name="no_prescriptions">Não existem receitas registadas para este paciente.</string>
 </resources>

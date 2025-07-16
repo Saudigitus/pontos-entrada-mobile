@@ -19,7 +19,7 @@ object Menu {
         MenuItem(
             icon = Icons.Default.Sync,
             name = R.string.sync_metadata,
-            event = ScanUiEvent.SyncData
+            event = ScanUiEvent.SyncMetaData
         ),
         MenuItem(
             icon = Icons.AutoMirrored.Filled.Logout,
