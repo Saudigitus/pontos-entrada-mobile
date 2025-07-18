@@ -83,6 +83,8 @@ class PrescriptionRepositoryImpl(
             val posology = dataValues.first { it.dataElement == UIDMapping.DATA_ELEMENT_POSOLOGY }.value
             val requestedQtd = dataValues.first { it.dataElement == UIDMapping.DATA_ELEMENT_QTD_REQ }
                 .value.toIntOrNull() ?: 0
+            val completedQtd = dataValues.firstOrNull { it.dataElement == UIDMapping.DATA_ELEMENT_QTD_GIVEN }
+                ?.value?.toIntOrNull() ?: 0
 
             val name = get<OptionResponse>(optionsUrl(optionCode))
                 .getOrNull()
@@ -96,6 +98,7 @@ class PrescriptionRepositoryImpl(
                 name = name,
                 posology = posology,
                 requestedQtd = requestedQtd,
+                completedQtd = completedQtd,
                 isCompleted = true
             )
         }

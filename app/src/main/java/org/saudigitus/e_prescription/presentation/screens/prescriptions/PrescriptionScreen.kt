@@ -59,7 +59,9 @@ fun PrescriptionScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val cache by viewModel.cacheGivenMedicines.collectAsStateWithLifecycle()
 
-    viewModel.loadData(uid)
+    LaunchedEffect(Unit) {
+        viewModel.loadData(uid)
+    }
 
     if (uiState.displayErrors && uiState.errorState != null) {
         ErrorBottomSheet(uiState.errorState!!) {
