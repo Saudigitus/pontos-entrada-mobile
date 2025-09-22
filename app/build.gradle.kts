@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -14,8 +16,8 @@ android {
         applicationId = "org.saudigitus.e_prescription"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,13 +55,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.dhis2.android.sdk) {
-        exclude("org.hisp.dhis", "core-rules")
-        exclude("com.facebook.flipper")
-        exclude("com.facebook.soloader")
-        this.isChanging = true
-    }
-    implementation(libs.dhis2.mobile.designsystem)
     implementation(libs.barcodeScanner.zxing.android)
     implementation(libs.hilt.android)
     implementation(libs.timber)
@@ -71,6 +66,15 @@ dependencies {
     implementation(libs.androidx.animation.graphics)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.hilt.work)
+    implementation(libs.hilt.navigation)
+    implementation(libs.jackson.module)
+    implementation(libs.ktor.core)
+    implementation(libs.ktor.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.jackson)
+    implementation(libs.ktor.auth)
+    implementation(libs.androidx.material.icons.core)
+    implementation(libs.androidx.material.icons.extended.android)
 
     ksp(libs.androidx.hilt.compiler)
     ksp(libs.hilt.compiler)

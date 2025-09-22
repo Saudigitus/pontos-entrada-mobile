@@ -12,11 +12,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.saudigitus.e_prescription.R
-import org.saudigitus.e_prescription.data.local.PrescriptionRepository
 import org.saudigitus.e_prescription.data.model.MedicineIndicators
+import org.saudigitus.e_prescription.data.remote.repository.PrescriptionRepository
 import org.saudigitus.e_prescription.presentation.screens.prescriptions.model.BottomSheetState
 import org.saudigitus.e_prescription.presentation.screens.prescriptions.model.InputFieldModel
 import org.saudigitus.e_prescription.utils.UIDMapping
+import org.saudigitus.e_prescription.utils.generateFieldModel
 import org.saudigitus.e_prescription.utils.toPrescriptionError
 import javax.inject.Inject
 
@@ -36,36 +37,36 @@ class PrescriptionViewModel
             viewModelState.value,
         )
 
+    private lateinit var trackerEntity: String
 
     private val _cacheGivenMedicines = MutableStateFlow<List<InputFieldModel>>(emptyList())
     val cacheGivenMedicines: StateFlow<List<InputFieldModel>> = _cacheGivenMedicines
 
-    private fun getTeiData(uid: String) {
+    fun loadData(tei: String) {
+        trackerEntity = tei
         viewModelScope.launch {
-            val patient = repository.getPrescriptionPatient(uid, UIDMapping.PROGRAM_PU)
+            val patientDeferred = async {
+                repository.getPatient(tei, UIDMapping.PROGRAM_PU, UIDMapping.RELATIONSHIP_TYPE_UID)
+            }
 
-            viewModelState.update {
-                it.copy(
-                    isLoading = false,
-                    prescTei = patient
+            val prescriptionsDeferred = async {
+                repository.getPrescriptions(
+                    tei = tei,
+                    program = UIDMapping.PROGRAM,
+                    stage = UIDMapping.PROGRAM_STAGE
                 )
             }
-        }
-    }
 
-    fun loadPrescriptions(tei: String) {
-        getTeiData(tei)
-        viewModelScope.launch {
-            val prescriptions = repository.getPrescriptions(
-                tei = tei,
-                program = UIDMapping.PROGRAM,
-                stage = UIDMapping.PROGRAM_STAGE
-            )
+            val patientResult = patientDeferred.await()
+            val prescriptionsResult = prescriptionsDeferred.await()
+
+            _cacheGivenMedicines.value = prescriptionsResult.generateFieldModel()
 
             viewModelState.update {
                 it.copy(
                     isLoading = false,
-                    prescriptions = prescriptions
+                    prescTei = patientResult,
+                    prescriptions = prescriptionsResult,
                 )
             }
         }
@@ -85,6 +86,7 @@ class PrescriptionViewModel
                         index,
                         InputFieldModel(
                             key = prescriptionUiEvent.prescription.uid,
+                            ou = prescriptionUiEvent.prescription.ou,
                             dataElement = UIDMapping.DATA_ELEMENT_QTD_GIVEN,
                             value = prescriptionUiEvent.value,
                             conditionalValue = prescriptionUiEvent.prescription.requestedQtd.toString()
@@ -94,6 +96,7 @@ class PrescriptionViewModel
                     cache.add(
                         InputFieldModel(
                             key = prescriptionUiEvent.prescription.uid,
+                            ou = prescriptionUiEvent.prescription.ou,
                             dataElement = UIDMapping.DATA_ELEMENT_QTD_GIVEN,
                             value = prescriptionUiEvent.value,
                             conditionalValue = prescriptionUiEvent.prescription.requestedQtd.toString()
@@ -134,8 +137,10 @@ class PrescriptionViewModel
                         async {
                             repository.savePrescription(
                                 event = it.key,
+                                ou = it.ou.orEmpty(),
                                 dataElement = it.dataElement,
-                                value = it.value
+                                value = it.value,
+                                tei = trackerEntity
                             )
                         }
                     }.awaitAll()

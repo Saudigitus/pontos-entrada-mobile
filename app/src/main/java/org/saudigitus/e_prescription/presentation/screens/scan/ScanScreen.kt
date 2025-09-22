@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -84,13 +83,6 @@ private fun ScanUI(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { onEvent(ScanUiEvent.SyncData) }) {
-                        Icon(
-                            imageVector = Icons.Default.Sync,
-                            contentDescription = stringResource(R.string.sync)
-                        )
-                    }
-
                     MoreVertMenu {
                         onEvent(it)
                     }
@@ -143,6 +135,7 @@ private fun ScanUI(
                     onEvent(ScanUiEvent.NavTo("${AppRoutes.PRESCRIPTION_SCREEN}/$uid"))
                 },
                 shape = RoundedCornerShape(16.dp),
+                enabled = state.scanResult.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth()
                     .height(108.dp)
                     .padding(24.dp)
