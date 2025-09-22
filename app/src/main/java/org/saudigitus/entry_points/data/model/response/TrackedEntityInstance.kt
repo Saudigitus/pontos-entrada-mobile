@@ -1,0 +1,17 @@
+package org.saudigitus.entry_points.data.model.response
+
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class TrackedEntityInstance(
+    @JsonProperty("attributes")
+    val attributes: List<Attribute> = emptyList(),
+    @JsonProperty("trackedEntityInstance")
+    val trackedEntityInstance: String = "",
+    @JsonProperty("enrollments")
+    val enrollments: List<Enrollment> = emptyList(),
+    @JsonProperty("relationships")
+    val relationships: List<Relationship> = emptyList()
+)
