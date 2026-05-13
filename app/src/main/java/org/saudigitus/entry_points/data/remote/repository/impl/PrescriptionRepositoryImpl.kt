@@ -1,9 +1,12 @@
 package org.saudigitus.entry_points.data.remote.repository.impl
 
+import android.content.Context
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import org.saudigitus.entry_points.data.failed
+import org.saudigitus.entry_points.data.getOrNull
 import org.saudigitus.entry_points.data.model.Patient
 import org.saudigitus.entry_points.data.model.Prescription
 import org.saudigitus.entry_points.data.model.put.DataValue
@@ -11,7 +14,9 @@ import org.saudigitus.entry_points.data.model.put.UpdateEvent
 import org.saudigitus.entry_points.data.model.response.OptionResponse
 import org.saudigitus.entry_points.data.model.response.TrackedEntityInstanceResponse
 import org.saudigitus.entry_points.data.remote.repository.PrescriptionRepository
+import org.saudigitus.entry_points.data.succeeded
 import org.saudigitus.entry_points.network.BaseNetwork
+import org.saudigitus.entry_points.network.CredentialProvider
 import org.saudigitus.entry_points.network.HttpClientHelper
 import org.saudigitus.entry_points.network.NetworkUtils
 import org.saudigitus.entry_points.network.URLMapping.optionsUrl
@@ -24,10 +29,11 @@ import org.saudigitus.entry_points.utils.UIDMapping.attributes
 import org.saudigitus.entry_points.utils.getByAttr
 
 class PrescriptionRepositoryImpl(
+    context: Context,
     override val networkUtil: NetworkUtils,
     httpClientHelper: HttpClientHelper,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-): BaseNetwork(httpClientHelper.httpClient(), networkUtil), PrescriptionRepository {
+) : BaseNetwork(context, httpClientHelper, networkUtil), PrescriptionRepository {
     override suspend fun savePrescription(
         tei: String,
         ou: String,
@@ -53,9 +59,9 @@ class PrescriptionRepositoryImpl(
         val response = put<Unit, UpdateEvent>(
             putEventUrl(event, dataElement),
             data
-        ).getOrNull()
+        )
 
-        return@withContext response?.first == 200 || response?.first == 201
+        return@withContext response.succeeded
     }
 
     override suspend fun getPrescriptions(
@@ -63,8 +69,11 @@ class PrescriptionRepositoryImpl(
         program: String,
         stage: String,
     ): List<Prescription> = withContext(ioDispatcher) {
-        val events = get<TrackedEntityInstanceResponse>(teiEventsUrl(tei, program))
-            .getOrNull()
+        val response = get<TrackedEntityInstanceResponse>(teiEventsUrl(tei, program))
+
+        if (response.failed != null) return@withContext emptyList()
+
+        val events = response.getOrNull()
             ?.trackedEntityInstances
             ?.flatMap { it.enrollments }
             ?.flatMap { it.events }
@@ -79,12 +88,16 @@ class PrescriptionRepositoryImpl(
         return@withContext eventDataMap.keys.map { key ->
             val dataValues = eventDataMap[Pair(key.first, key.second)] ?: emptyList()
 
-            val optionCode = dataValues.firstOrNull { it.dataElement == UIDMapping.DATA_ELEMENT_NAME }?.value
-            val posology = dataValues.firstOrNull { it.dataElement == UIDMapping.DATA_ELEMENT_POSOLOGY }?.value
-            val requestedQtd = dataValues.firstOrNull { it.dataElement == UIDMapping.DATA_ELEMENT_QTD_REQ }
-                ?.value?.toIntOrNull() ?: 0
-            val completedQtd = dataValues.firstOrNull { it.dataElement == UIDMapping.DATA_ELEMENT_QTD_GIVEN }
-                ?.value?.toIntOrNull() ?: 0
+            val optionCode =
+                dataValues.firstOrNull { it.dataElement == UIDMapping.DATA_ELEMENT_NAME }?.value
+            val posology =
+                dataValues.firstOrNull { it.dataElement == UIDMapping.DATA_ELEMENT_POSOLOGY }?.value
+            val requestedQtd =
+                dataValues.firstOrNull { it.dataElement == UIDMapping.DATA_ELEMENT_QTD_REQ }
+                    ?.value?.toIntOrNull() ?: 0
+            val completedQtd =
+                dataValues.firstOrNull { it.dataElement == UIDMapping.DATA_ELEMENT_QTD_GIVEN }
+                    ?.value?.toIntOrNull() ?: 0
 
             val name = get<OptionResponse>(optionsUrl(optionCode.orEmpty()))
                 .getOrNull()
